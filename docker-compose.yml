@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  server:
+    build: ./server
+    container_name: server 
+    ports:
+      - "3001:3001"
+    environment: 
+      - mongodb+srv://vamsikrishnagoda8:vamsi334@cluster0.ot3slr3.mongodb.net/?retryWrites=true&w=majority&appName=pratice2/vamsicrud
+
+  client:
+    build: ./client
+    container_name: client
+    ports :
+    - "3000:80"
