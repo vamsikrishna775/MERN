@@ -1,30 +1,58 @@
-const express= require('express');
+const express = require('express');
 const router = express.Router();
 const typeDefs = require('../schema');
 const resolvers = require('../resolvers');
-const {ApolloServer , gql } = require('apollo-server-express');
+const { ApolloServer, gql } = require('apollo-server-express');
 
+const server = new ApolloServer({ typeDefs, resolvers });
 
-const server = new ApolloServer({typeDefs,resolvers});
-//:3001/users/register
-router.post('/register', async (req,res)=>{
-    try{
-        const {name,email,password}=req.body;
-        const {data,error} = await server.executeOperation({
-            query:gql`mutation{
-               createUser(input:{name:"${name}",email:"${email}",password:"${password}"}){
-               name
-               email 
-               password
-               }
-            }`
+router.post('/register', async (req, res) => {
+    try {
+        const { name, email, password } = req.body;
+        const { data, errors } = await server.executeOperation({
+            query: gql`
+                mutation($input: CreateUserInput!) {
+                    createUser(input: $input) {
+                        name
+                        email
+                    }
+                }
+            `,
+            variables: { input: { name, email, password } },
         });
-        if(error){
-            res.status(500).send({message:error});
+        if (errors) {
+            return res.status(500).send({ message: errors });
         }
-        res.status(201).send({data})
-    }catch(err){
-        res.status(500).send({message:err});
+        res.status(201).send({ data });
+    } catch (err) {
+        res.status(500).send({ message: err.message });
     }
 });
-module.exports= router;
+
+router.post('/login', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        const { data, errors } = await server.executeOperation({
+            query: gql`
+                mutation($input: LoginUserInput!) {
+                    loginUser(input: $input) {
+                        token
+                        user {
+                            name
+                            email
+                        }
+                    }
+                }
+            `,
+            variables: { input: { email, password } },
+        });
+        if (errors) {
+            return res.status(500).send({ message: errors });
+        }
+        res.status(200).send({ data });
+    } catch (err) {
+        res.status(500).send({ message: err.message });
+    }
+});
+
+module.exports = router;
